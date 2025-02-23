@@ -1,0 +1,15 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: test
+  name: job-creator
+rules:
+- apiGroups: ["batch"]
+  resources: ["jobs"]
+  verbs: ["create","get","list","watch","delete"]
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["create", "get", "list", "watch", "delete"]
+- apiGroups: [""]
+  resources: ["pods/log"] # Added pods/log subresource
+  verbs: ["get"] # get verb is used to read logs.

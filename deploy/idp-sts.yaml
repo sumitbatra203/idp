@@ -1,0 +1,34 @@
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: idp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: idp
+  template:
+    metadata:
+      labels:
+        app: idp
+    spec:
+      containers:
+      - name: idp
+        image: idp:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8181
+          name: idp-port
+        volumeMounts:
+        - name: idp-volume
+          mountPath: /var
+  volumeClaimTemplates:
+  - metadata:
+      name: idp-volume
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+
