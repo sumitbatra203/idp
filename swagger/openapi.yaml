@@ -1,0 +1,255 @@
+openapi: 3.0.3
+info:
+  title: Internal Developer Portal
+  description: |-
+    Mutli tenant internal platform to submit data processing jobs as ephermal container
+  version: 1.0.11
+servers:
+  - url: https://atlan.com/idp
+  - url: http://127.0.0.1:8181
+tags:
+  - name: datajob
+    description: Everything about your IDP
+    externalDocs:
+      description: Find out more
+      url: http://swagger.io
+paths:
+  /datajob:
+    post:
+      tags:
+        - datajob
+      summary: Add a new job for a tenant
+      description: Add a new job for a tenant
+      operationId: addDataJob
+      parameters:
+        - name: jwt_token
+          in: header
+          description: ''
+          required: true
+          schema:
+            type: string      
+      requestBody:
+        description: Create A a new job for a tenant
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/tasks'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/task-submit-response'          
+        '400':
+          description: Invalid input
+        '422':
+          description: Validation exception
+      security:
+        - petstore_auth:
+            - write:pets
+            - read:pets
+    get:
+      tags:
+        - datajob
+      summary: gets all jobs by tenant
+      description: Multiple tags can be provided with comma separated strings. Use tag1, tag2, tag3 for testing.
+      operationId: get-jobs
+      parameters:
+        - name: jwt_token
+          in: header
+          description: ''
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/task-response'          
+        '400':
+          description: Invalid tag value
+      security:
+        - petstore_auth:
+            - write:pets
+            - read:pets
+  /datajob/getByStatus/{statusID}:
+    get:
+      tags:
+        - datajob
+      summary: Filter Jobs by status tags
+      description: Multiple tags can be provided with comma separated strings. Use tag1, tag2, tag3 for testing.
+      operationId: get-job-by-status
+      parameters:
+        - name: jwt_token
+          in: header
+          description: ''
+          required: true
+          schema:
+            type: string
+        - name: statusID
+          in: path
+          description: Valid Status Type
+          required: true
+          explode: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/task-response'          
+
+        '400':
+          description: Invalid tag value
+      security:
+        - petstore_auth:
+            - write:pets
+            - read:pets              
+            
+  /datajob/{jobID}:
+    get:
+      tags:
+        - datajob
+      summary: Get a job status
+      description: Multiple status values can be provided with comma separated strings
+      operationId: findPetsByStatus
+      parameters:
+        - name: jwt_token
+          in: header
+          description: ''
+          required: false
+          schema:
+            type: string      
+        - name: jobID
+          in: path
+          description: Status values that need to be considered for filter
+          required: true
+          explode: true
+          schema:
+            type: string
+            default: available
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/task-response'          
+        '400':
+          description: Invalid status value
+      security:
+        - petstore_auth:
+            - write:pets
+            - read:pets
+    delete:
+      tags:
+        - datajob
+      summary: Cancel a job
+      description: Multiple status values can be provided with comma separated strings
+      operationId: deleteJob
+      parameters:
+        - name: jobID
+          in: path
+          description: Status values that need to be considered for filter
+          required: true
+          explode: true
+          schema:
+            type: string
+            default: available
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/task-delete-response'
+        '400':
+          description: Invalid status value
+      security:
+        - petstore_auth:
+            - write:pets
+            - read:pets
+components:
+  schemas:
+    tasks:
+      type: object
+      properties:
+        name:
+          type: string
+          format: string
+          example: "task-1"
+        category:
+          type: string
+          enum:
+           - task-1
+           - task-2
+           - task-3
+        date:
+          type: string
+          format: date-time
+    Tag:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+      xml:
+        name: tag
+    task-submit-response:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: integer
+          example: 200
+        message:
+          type: string
+          example: "job submitted successfully"
+    task-delete-response:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: integer
+          example: 200
+        message:
+          type: string
+          example: "job deleted successfully"          
+    task-response:
+      type: object
+      properties:
+        id:
+          type: string
+          format: string
+          example: 202502231001
+        name:
+          type: string
+          example: data-job-1
+        status:
+          type: string
+          example: submit
+  securitySchemes:
+    petstore_auth:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: https://idp.com/oauth/authorize
+          scopes:
+            create:jobs: create jobs in your account
+            read:jobs: read your jobs
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header
